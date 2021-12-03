@@ -15,8 +15,6 @@ const fetchMyIP = function(callback) {
   });
 }
 
-//module.exports = { fetchMyIP };
-
 const fetchCoordsByIP = function(ip, callback) {
   request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
     if (error) {
@@ -34,9 +32,6 @@ const fetchCoordsByIP = function(ip, callback) {
     callback(null, { latitude, longitude });
   });
 };
-
-// Don't need to export the other function since we are not testing it right now.
-//module.exports = { fetchCoordsByIP };
 
 const fetchISSFlyOverTimes = function(coords, callback) {
   const url = `https://iss-pass.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
@@ -57,5 +52,28 @@ const fetchISSFlyOverTimes = function(coords, callback) {
   });
 };
 
-// Don't need to export the other functions since we are not testing them right now.
-module.exports = { fetchISSFlyOverTimes };
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
+
+    fetchCoordsByIP(ip, (error, loc) => {
+      if (error) {
+        return callback(error, null);
+      }
+
+      fetchISSFlyOverTimes(loc, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null);
+        }
+
+        callback(null, nextPasses);
+      });
+    });
+  });
+};
+
+// Only export nextISSTimesForMyLocation and not the other three (API request) functions.
+// This is because they are not needed by external modules.
+module.exports = { nextISSTimesForMyLocation };
